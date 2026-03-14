@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiến Thần Hình Học - Toán 7 CTST</title>
+    
+    <!-- Nhúng Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Nhúng React và ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Nhúng Babel để dịch JSX trực tiếp trên trình duyệt -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-1deg); }
+            50% { transform: translateX(10px) rotate(1deg); }
+            75% { transform: translateX(-10px) rotate(-1deg); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- BỘ ICON TỰ ĐỊNH NGHĨA (Thay thế cho lucide-react để không lỗi CDN) ---
+        const IconHeart = ({ className, fill }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={fill || "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        );
+        const IconPlay = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        );
+        const IconRotateCcw = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        );
+        const IconCheckCircle = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        );
+        const IconXCircle = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+        );
+        const IconZap = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        );
+        const IconTrophy = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        );
+        const IconFlame = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        );
+        const IconTimer = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+        );
+        const IconStar = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        );
+        const IconInfo = ({ className }) => (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        );
+
+        // --- CÁC HÀM TOÁN HỌC & HÌNH HỌC ---
+        const rotate = (p, angle) => ({
+            x: p.x * Math.cos(angle) - p.y * Math.sin(angle),
+            y: p.x * Math.sin(angle) + p.y * Math.cos(angle)
+        });
+
+        const translate = (p, dx, dy) => ({ x: p.x + dx, y: p.y + dy });
+        const getMidpoint = (p1, p2) => ({ x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 });
+
+        const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+        const randItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        // --- CÁC HÀM VẼ CANVAS ---
+        const drawRightAngle = (ctx, pt, p1, p2) => {
+            const size = 15; 
+            const d1 = { x: p1.x - pt.x, y: p1.y - pt.y };
+            const len1 = Math.hypot(d1.x, d1.y);
+            if (len1 === 0) return;
+            const u1 = { x: d1.x / len1, y: d1.y / len1 };
+
+            const d2 = { x: p2.x - pt.x, y: p2.y - pt.y };
+            const len2 = Math.hypot(d2.x, d2.y);
+            if (len2 === 0) return;
+            const u2 = { x: d2.x / len2, y: d2.y / len2 };
+
+            const corner = { x: pt.x + size * u1.x + size * u2.x, y: pt.y + size * u1.y + size * u2.y };
+            const pt1 = { x: pt.x + size * u1.x, y: pt.y + size * u1.y };
+            const pt2 = { x: pt.x + size * u2.x, y: pt.y + size * u2.y };
+
+            ctx.beginPath();
+            ctx.moveTo(pt1.x, pt1.y);
+            ctx.lineTo(corner.x, corner.y);
+            ctx.lineTo(pt2.x, pt2.y);
+            ctx.strokeStyle = '#ef4444'; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        };
+
+        const drawTick = (ctx, p1, p2, numTicks = 1) => {
+            const mid = getMidpoint(p1, p2);
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const len = Math.hypot(dx, dy);
+            if (len === 0) return;
+            
+            const ux = dx / len;
+            const uy = dy / len;
+            const nx = -uy; 
+            const ny = ux;
+
+            const tickLen = 6;
+            const gap = 5;
+
+            ctx.beginPath();
+            for (let i = 0; i < numTicks; i++) {
+                const offset = (i - (numTicks - 1) / 2) * gap;
+                const cx = mid.x + ux * offset;
+                const cy = mid.y + uy * offset;
+                ctx.moveTo(cx + nx * tickLen, cy + ny * tickLen);
+                ctx.lineTo(cx - nx * tickLen, cy - ny * tickLen);
+            }
+            ctx.strokeStyle = '#2563eb'; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        };
+
+        const drawLabels = (ctx, A, B, C, extraPoints = []) => {
+            const hasTriangle = A.x !== 0 || B.x !== 0 || C.x !== 0;
+            const G = hasTriangle ? { x: (A.x + B.x + C.x) / 3, y: (A.y + B.y + C.y) / 3 } : {x:0, y:0};
+            
+            const drawLabel = (pt, text, color='#1f2937', size='18px') => {
+                const dx = pt.x - G.x;
+                const dy = pt.y - G.y;
+                const len = Math.hypot(dx, dy) || 1;
+                const offset = 22; 
+                const lx = pt.x + (dx / len) * offset;
+                const ly = pt.y + (dy / len) * offset;
+
+                ctx.font = `bold ${size} Arial`;
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, lx, ly);
+            };
+            
+            if (hasTriangle) {
+                drawLabel(A, 'A'); drawLabel(B, 'B'); drawLabel(C, 'C');
+            }
+            extraPoints.forEach(p => {
+                if (p.isDot) {
+                    ctx.beginPath();
+                    ctx.arc(p.pt.x, p.pt.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color || '#dc2626';
+                    ctx.fill();
+                    drawLabel(p.pt, p.label, p.color || '#dc2626');
+                } else {
+                    ctx.font = `bold ${p.size || '22px'} Arial`;
+                    ctx.fillStyle = p.color || '#4f46e5';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(p.label, p.pt.x, p.pt.y);
+                }
+            });
+        };
+
+        // --- DATA ---
+        const ALL_TYPES_IDENTIFY = [
+            { id: 'median', name: 'Đường trung tuyến' },
+            { id: 'perpBisector', name: 'Đường trung trực' },
+            { id: 'altitude', name: 'Đường cao' },
+            { id: 'angleBisector', name: 'Đường phân giác' },
+            { id: 'centroid', name: 'Trọng tâm (G)' },
+            { id: 'orthocenter', name: 'Trực tâm (H)' },
+        ];
+
+        const RANKS = [
+            { name: 'Đồng III', xp: 0, color: 'text-orange-600', bg: 'bg-orange-100' },
+            { name: 'Bạc II', xp: 400, color: 'text-slate-500', bg: 'bg-slate-200' },
+            { name: 'Vàng I', xp: 1000, color: 'text-yellow-500', bg: 'bg-yellow-100' },
+            { name: 'Kim Cương', xp: 2000, color: 'text-cyan-500', bg: 'bg-cyan-100' },
+            { name: 'Thách Đấu', xp: 3500, color: 'text-purple-600', bg: 'bg-purple-200' },
+        ];
+
+        const MAX_QUESTIONS = 20;
+        const TIME_PER_Q = 20;
+
+        function App() {
+            const [gameState, setGameState] = useState('menu'); 
+            const [xp, setXp] = useState(0);
+            const [lives, setLives] = useState(3);
+            const [combo, setCombo] = useState(0);
+            const [questionNum, setQuestionNum] = useState(1);
+            const [currentQ, setCurrentQ] = useState(null);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [timeLeft, setTimeLeft] = useState(TIME_PER_Q);
+            const [shake, setShake] = useState(false);
+            
+            const canvasRef = useRef(null);
+            const timerRef = useRef(null);
+
+            const currentRank = [...RANKS].reverse().find(r => xp >= r.xp) || RANKS[0];
+
+            const generateQuestion = (qNumber) => {
+                let qCategory = '';
+                if (qNumber <= 4) qCategory = randItem(['identify_basic', 'angle_sum']);
+                else if (qNumber <= 9) qCategory = randItem(['identify_mid', 'iso_angle', 'inequality']);
+                else if (qNumber <= 14) qCategory = randItem(['centroid_calc', 'exterior_angle', 'inequality']);
+                else qCategory = randItem(['centroid_calc', 'identify_hard', 'angle_sum_complex']);
+
+                const angle = Math.random() * Math.PI * 2;
+                const cx = 300, cy = 200; 
+
+                const rotAndTrans = (p) => translate(rotate(p, angle), cx, cy);
+
+                let baseA = { x: (Math.random() - 0.5) * 160, y: -Math.random() * 80 - 60 };
+                let baseB = { x: -120, y: 80 };
+                let baseC = { x: 120, y: 80 };
+                let baseM = { x: 0, y: 80 };
+
+                const getInnerPt = (pt, offset) => {
+                    const G = { x: (baseA.x + baseB.x + baseC.x)/3, y: (baseA.y + baseB.y + baseC.y)/3 };
+                    const dx = G.x - pt.x; const dy = G.y - pt.y;
+                    const len = Math.hypot(dx, dy) || 1;
+                    return { x: pt.x + (dx/len)*offset, y: pt.y + (dy/len)*offset };
+                }
+
+                let lines = [], ticks = [], rightAngles = [], angles = [], extraPoints = [];
+                let title = "", correctText = "", options = [], overlayText = null;
+                let hideTriangle = false;
+
+                switch(qCategory) {
+                    case 'angle_sum':
+                    case 'angle_sum_complex':
+                        const aVal = Math.floor(Math.random() * 50 + 40);
+                        const bVal = Math.floor(Math.random() * 50 + 30);
+                        const cVal = 180 - aVal - bVal;
+                        title = "Định lí Tổng 3 góc: Tìm số đo góc C (?)";
+                        correctText = `${cVal}°`;
+                        options = shuffle([correctText, `${cVal + 10}°`, `${cVal - 10}°`, `${180 - cVal}°`]);
+                        
+                        extraPoints.push({ pt: getInnerPt(baseA, 35), label: `${aVal}°`, isDot: false });
+                        extraPoints.push({ pt: getInnerPt(baseB, 35), label: `${bVal}°`, isDot: false });
+                        extraPoints.push({ pt: getInnerPt(baseC, 35), label: `?`, isDot: false, color: '#ef4444', size: '30px' });
+                        break;
+
+                    case 'iso_angle':
+                        baseA = { x: 0, y: -80 }; baseB = { x: -100, y: 80 }; baseC = { x: 100, y: 80 };
+                        const isTopGiven = Math.random() > 0.5;
+                        if (isTopGiven) {
+                            const topA = Math.floor(Math.random() * 40 + 30) * 2;
+                            const baseAng = (180 - topA) / 2;
+                            title = "Tam giác ABC cân tại A. Tìm góc C (?)";
+                            correctText = `${baseAng}°`;
+                            options = shuffle([correctText, `${topA}°`, `${baseAng + 10}°`, `${180 - topA}°`]);
+                            extraPoints.push({ pt: getInnerPt(baseA, 35), label: `${topA}°`, isDot: false });
+                            extraPoints.push({ pt: getInnerPt(baseC, 35), label: `?`, isDot: false, color: '#ef4444', size: '30px' });
+                        } else {
+                            const baseAng = Math.floor(Math.random() * 30 + 40);
+                            const topA = 180 - 2 * baseAng;
+                            title = "Tam giác ABC cân tại A. Tìm góc đỉnh A (?)";
+                            correctText = `${topA}°`;
+                            options = shuffle([correctText, `${baseAng}°`, `${topA + 10}°`, `${180 - baseAng}°`]);
+                            extraPoints.push({ pt: getInnerPt(baseB, 35), label: `${baseAng}°`, isDot: false });
+                            extraPoints.push({ pt: getInnerPt(baseA, 35), label: `?`, isDot: false, color: '#ef4444', size: '30px' });
+                        }
+                        ticks.push({ p1: baseA, p2: baseB, count: 1 });
+                        ticks.push({ p1: baseA, p2: baseC, count: 1 });
+                        break;
+
+                    case 'exterior_angle':
+                        const inA = Math.floor(Math.random() * 50 + 40);
+                        const inB = Math.floor(Math.random() * 50 + 40);
+                        const extC = inA + inB;
+                        title = "Tính số đo Góc ngoài tại đỉnh C (?)";
+                        correctText = `${extC}°`;
+                        options = shuffle([correctText, `${180 - extC}°`, `${extC - 10}°`, `${inA + inB + 10}°`]);
+                        
+                        const extPoint = { x: baseC.x + 80, y: baseC.y };
+                        lines.push({ p1: baseC, p2: extPoint, color: '#374151', width: 2 });
+                        
+                        extraPoints.push({ pt: getInnerPt(baseA, 35), label: `${inA}°`, isDot: false });
+                        extraPoints.push({ pt: getInnerPt(baseB, 35), label: `${inB}°`, isDot: false });
+                        extraPoints.push({ pt: { x: baseC.x + 40, y: baseC.y - 20 }, label: `?`, isDot: false, color: '#ef4444', size: '30px' });
+                        break;
+
+                    case 'centroid_calc':
+                        baseA = { x: 0, y: -90 }; baseB = { x: -120, y: 90 }; baseC = { x: 120, y: 90 };
+                        const AM_len = randItem([6, 9, 12, 15, 18, 21]);
+                        const AG_len = AM_len * 2 / 3;
+                        const GM_len = AM_len / 3;
+                        
+                        const askAG = Math.random() > 0.5;
+                        if(askAG) {
+                            title = `G là trọng tâm. Biết trung tuyến AM = ${AM_len}cm. Tính AG?`;
+                            correctText = `${AG_len} cm`;
+                            options = shuffle([correctText, `${GM_len} cm`, `${AM_len/2} cm`, `${AG_len+1} cm`]);
+                        } else {
+                            title = `G là trọng tâm. Biết AG = ${AG_len}cm. Tính AM?`;
+                            correctText = `${AM_len} cm`;
+                            options = shuffle([correctText, `${GM_len} cm`, `${AG_len*2} cm`, `${AM_len+2} cm`]);
+                        }
+
+                        lines.push({ p1: baseA, p2: baseM, color: '#ef4444', width: 3 });
+                        const baseG = { x: 0, y: 30 }; 
+                        extraPoints.push({ pt: baseG, label: 'G', isDot: true });
+                        extraPoints.push({ pt: baseM, label: 'M', isDot: true, color:'#1f2937' });
+                        ticks.push({ p1: baseB, p2: baseM, count: 1 });
+                        ticks.push({ p1: baseM, p2: baseC, count: 1 });
+                        break;
+
+                    case 'inequality':
+                        title = "Bất đẳng thức tam giác";
+                        hideTriangle = true; 
+                        overlayText = "Bộ 3 độ dài nào sau đây\nCÓ THỂ tạo thành 1 tam giác?";
+                        
+                        const valids = ["3cm, 4cm, 5cm", "4cm, 5cm, 6cm", "5cm, 5cm, 8cm", "6cm, 8cm, 10cm", "7cm, 8cm, 9cm"];
+                        const invalids = ["1cm, 2cm, 3cm", "2cm, 2cm, 5cm", "3cm, 4cm, 8cm", "1cm, 5cm, 7cm", "2cm, 6cm, 9cm"];
+                        
+                        correctText = randItem(valids);
+                        let opSet = new Set([correctText]);
+                        while(opSet.size < 4) opSet.add(randItem(invalids));
+                        options = shuffle(Array.from(opSet));
+                        break;
+
+                    case 'identify_basic':
+                    case 'identify_mid':
+                    case 'identify_hard':
+                        let avail = ALL_TYPES_IDENTIFY.slice(0, 4);
+                        if (qCategory === 'identify_mid') avail = ALL_TYPES_IDENTIFY.slice(0, 5);
+                        if (qCategory === 'identify_hard') avail = ALL_TYPES_IDENTIFY;
+                        
+                        const typeObj = randItem(avail);
+                        title = "Yếu tố màu nổi bật là đường gì?";
+                        correctText = typeObj.name;
+                        
+                        let opSet2 = new Set([correctText]);
+                        while(opSet2.size < 4) opSet2.add(randItem(ALL_TYPES_IDENTIFY).name);
+                        options = shuffle(Array.from(opSet2));
+
+                        if (typeObj.id === 'median') {
+                            lines.push({ p1: baseA, p2: baseM, color: '#ef4444', width: 3 });
+                            ticks.push({ p1: baseB, p2: baseM, count: 1 });
+                            ticks.push({ p1: baseM, p2: baseC, count: 1 });
+                        } else if (typeObj.id === 'perpBisector') {
+                            const topPt = { x: 0, y: -160 }; const botPt = { x: 0, y: 140 };
+                            lines.push({ p1: topPt, p2: botPt, color: '#10b981', width: 3 });
+                            ticks.push({ p1: baseB, p2: baseM, count: 2 });
+                            ticks.push({ p1: baseM, p2: baseC, count: 2 });
+                            rightAngles.push({ pt: baseM, p1: baseC, p2: topPt });
+                        } else if (typeObj.id === 'altitude') {
+                            const baseH = { x: baseA.x, y: 80 };
+                            lines.push({ p1: baseA, p2: baseH, color: '#f59e0b', width: 3 });
+                            rightAngles.push({ pt: baseH, p1: baseC, p2: baseA });
+                        } else if (typeObj.id === 'angleBisector') {
+                            const baseD = { x: 0, y: 80 }; 
+                            lines.push({ p1: baseA, p2: baseD, color: '#8b5cf6', width: 3 });
+                            extraPoints.push({ pt: getInnerPt(baseA, 25), label: 'α', isDot: false, size: '16px' });
+                            extraPoints.push({ pt: {x: getInnerPt(baseA, 25).x + 15, y: getInnerPt(baseA, 25).y}, label: 'α', isDot: false, size: '16px' });
+                        } else if (typeObj.id === 'centroid') {
+                            const M_AC = getMidpoint(baseA, baseC);
+                            lines.push({ p1: baseA, p2: baseM, color: '#9ca3af', width: 2 });
+                            lines.push({ p1: baseB, p2: M_AC, color: '#9ca3af', width: 2 });
+                            extraPoints.push({ pt: { x: (baseA.x + baseB.x + baseC.x)/3, y: (baseA.y + baseB.y + baseC.y)/3 }, label: 'G', isDot: true });
+                        } else if (typeObj.id === 'orthocenter') {
+                            const H_foot = {x: baseA.x, y: 80};
+                            lines.push({ p1: baseA, p2: H_foot, color: '#9ca3af', width: 2 });
+                            rightAngles.push({ pt: H_foot, p1: baseC, p2: baseA });
+                            extraPoints.push({ pt: {x: baseA.x, y: baseA.y + 60}, label: 'H', isDot: true }); 
+                        }
+                        break;
+                }
+
+                let finalTriangle = [];
+                if (!hideTriangle) {
+                    finalTriangle = [rotAndTrans(baseA), rotAndTrans(baseB), rotAndTrans(baseC)];
+                    
+                    lines = lines.map(l => ({ p1: rotAndTrans(l.p1), p2: rotAndTrans(l.p2), color: l.color, width: l.width }));
+                    ticks = ticks.map(t => ({ p1: rotAndTrans(t.p1), p2: rotAndTrans(t.p2), count: t.count }));
+                    rightAngles = rightAngles.map(r => ({ pt: rotAndTrans(r.pt), p1: rotAndTrans(r.p1), p2: rotAndTrans(r.p2) }));
+                    extraPoints = extraPoints.map(p => ({ pt: rotAndTrans(p.pt), label: p.label, color: p.color, isDot: p.isDot, size: p.size }));
+                }
+
+                setCurrentQ({
+                    title, correctText, options, overlayText, hideTriangle,
+                    triangle: finalTriangle, lines, ticks, rightAngles, angles, extraPoints
+                });
+                setTimeLeft(TIME_PER_Q);
+            };
+
+            const startGame = () => {
+                setXp(0);
+                setLives(3);
+                setCombo(0);
+                setQuestionNum(1);
+                setGameState('playing');
+                generateQuestion(1);
+            };
+
+            useEffect(() => {
+                if (gameState === 'playing' && timeLeft > 0) {
+                    timerRef.current = setInterval(() => {
+                        setTimeLeft(prev => prev - 1);
+                    }, 1000);
+                } else if (timeLeft === 0 && gameState === 'playing') {
+                    handleAnswer("TIMEOUT"); 
+                }
+                return () => clearInterval(timerRef.current);
+            }, [timeLeft, gameState]);
+
+            const handleAnswer = (option) => {
+                if (gameState !== 'playing') return;
+                clearInterval(timerRef.current);
+                setSelectedAnswer(option);
+                setGameState('feedback');
+
+                const isCorrect = option === currentQ.correctText;
+                
+                if (isCorrect) {
+                    const timeBonus = timeLeft > 10 ? 30 : (timeLeft > 5 ? 15 : 0);
+                    const comboMultiplier = 1 + (combo * 0.1);
+                    const xpGained = Math.floor((100 + timeBonus) * comboMultiplier);
+                    
+                    setXp(s => s + xpGained);
+                    setCombo(c => c + 1);
+                } else {
+                    setLives(l => l - 1);
+                    setCombo(0);
+                    setShake(true);
+                    setTimeout(() => setShake(false), 500);
+                }
+
+                setTimeout(() => {
+                    if (lives <= 1 && !isCorrect) {
+                        setGameState('gameover');
+                    } else if (questionNum >= MAX_QUESTIONS && isCorrect) {
+                        setGameState('victory');
+                    } else {
+                        setGameState('playing');
+                        setSelectedAnswer(null);
+                        setQuestionNum(q => isCorrect ? q + 1 : q);
+                        generateQuestion(isCorrect ? questionNum + 1 : questionNum);
+                    }
+                }, 2000); 
+            };
+
+            useEffect(() => {
+                if (!currentQ || (gameState !== 'playing' && gameState !== 'feedback')) return;
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (currentQ.hideTriangle) return; 
+
+                const { triangle, lines, ticks, rightAngles, extraPoints } = currentQ;
+                const [A, B, C] = triangle;
+
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y);
+                ctx.closePath();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#374151'; 
+                ctx.fillStyle = '#f8fafc'; 
+                ctx.fill(); ctx.stroke();
+
+                rightAngles.forEach(r => drawRightAngle(ctx, r.pt, r.p1, r.p2));
+                
+                lines.forEach(l => {
+                    ctx.beginPath();
+                    ctx.moveTo(l.p1.x, l.p1.y);
+                    ctx.lineTo(l.p2.x, l.p2.y);
+                    ctx.lineWidth = l.width || 2;
+                    ctx.strokeStyle = l.color || '#000';
+                    ctx.stroke();
+                });
+
+                ticks.forEach(t => drawTick(ctx, t.p1, t.p2, t.count));
+                drawLabels(ctx, A, B, C, extraPoints);
+
+            }, [currentQ, gameState]);
+
+            if (gameState === 'menu') {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <div className="bg-slate-800 rounded-3xl shadow-2xl shadow-indigo-500/20 p-8 max-w-md w-full text-center border border-slate-700">
+                            <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 transform rotate-12 shadow-lg">
+                                <IconZap className="w-12 h-12 text-white transform -rotate-12" />
+                            </div>
+                            <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                                CHIẾN THẦN HÌNH HỌC
+                            </h1>
+                            <p className="text-slate-400 mb-6 font-medium">
+                                Phiên bản CTST Toán 7 - Vượt 20 thử thách!<br/>
+                            </p>
+                            <div className="bg-slate-700/50 rounded-xl p-4 mb-8 text-sm text-left text-slate-300">
+                                <div className="flex items-center gap-2 mb-2"><IconInfo className="w-4 h-4 text-emerald-400"/> Gồm: Nhận biết, BĐT Tam giác, Tính góc.</div>
+                                <div className="flex items-center gap-2 mb-2"><IconFlame className="w-4 h-4 text-orange-400"/> Combo liên tiếp nhân nhiều XP.</div>
+                                <div className="flex items-center gap-2"><IconTimer className="w-4 h-4 text-cyan-400"/> 20s/Câu. Nhanh tay thưởng lớn!</div>
+                            </div>
+                            <button onClick={startGame} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-4 px-8 rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all flex items-center justify-center gap-2 text-xl active:scale-95">
+                                <IconPlay className="w-6 h-6" /> VÀO GAME
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'gameover' || gameState === 'victory') {
+                const isWin = gameState === 'victory';
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <div className="bg-slate-800 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border border-slate-700 relative overflow-hidden">
+                            <div className="absolute inset-0 opacity-10 flex items-center justify-center">
+                                <IconStar className="w-96 h-96 animate-spin" />
+                            </div>
+                            
+                            <div className="relative z-10">
+                                <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${isWin ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                                    {isWin ? <IconTrophy className="w-12 h-12" /> : <IconXCircle className="w-12 h-12" />}
+                                </div>
+                                <h1 className="text-4xl font-black mb-2">{isWin ? 'PHÁ ĐẢO!' : 'THẤT BẠI!'}</h1>
+                                <p className="text-slate-400 mb-6 text-lg">{isWin ? 'Bạn là bậc thầy Hình học lớp 7!' : `Bạn dừng chân ở Câu ${questionNum}/20`}</p>
+                                
+                                <div className="bg-slate-700 rounded-2xl p-4 mb-8">
+                                    <div className="text-sm text-slate-400 mb-1">Tổng XP Đạt Được</div>
+                                    <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">{xp}</div>
+                                    <div className={`mt-2 font-bold ${currentRank.color} flex items-center justify-center gap-2 text-xl`}>
+                                        Rank: {currentRank.name}
+                                    </div>
+                                </div>
+
+                                <button onClick={startGame} className="w-full bg-slate-100 hover:bg-white text-slate-900 font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-2 text-lg active:scale-95">
+                                    <IconRotateCcw className="w-6 h-6" /> CHƠI LẠI TỪ ĐẦU
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className={`min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 ${shake ? 'animate-shake' : ''}`}>
+                    <div className="max-w-4xl w-full mb-4 flex flex-wrap gap-2 justify-between items-center bg-slate-800 p-3 sm:p-4 rounded-2xl border border-slate-700 shadow-lg">
+                        <div className="flex items-center gap-3">
+                            <div className={`px-3 py-1 rounded-lg font-bold ${currentRank.bg} ${currentRank.color} text-sm flex items-center gap-1`}>
+                                <IconTrophy className="w-4 h-4"/> {currentRank.name}
+                            </div>
+                            <div className="text-slate-300 font-bold">XP: <span className="text-indigo-400">{xp}</span></div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            {combo >= 2 && (
+                                <div className="flex items-center gap-1 text-orange-400 font-black animate-pulse">
+                                    <IconFlame className="w-5 h-5" /> x{combo}
+                                </div>
+                            )}
+                            <div className="flex items-center gap-1">
+                                {[...Array(3)].map((_, i) => (
+                                    <IconHeart key={i} fill={i < lives ? "currentColor" : "none"} className={`w-5 h-5 sm:w-6 sm:h-6 ${i < lives ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'text-slate-700'}`} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-800 rounded-3xl shadow-xl p-4 sm:p-6 max-w-4xl w-full border border-slate-700 relative">
+                        <div className="relative rounded-2xl overflow-hidden bg-slate-200 border-4 border-slate-700 flex flex-col items-center">
+                            <div className="absolute top-0 left-0 w-full bg-slate-800 text-white font-bold px-4 py-2 sm:py-3 text-center border-b-4 border-slate-700 text-sm sm:text-lg z-10 shadow-md">
+                                <span className="text-indigo-400">Trận {questionNum}/20:</span> {currentQ?.title}
+                            </div>
+                            
+                            {currentQ?.hideTriangle && currentQ?.overlayText && (
+                                <div className="absolute inset-0 flex items-center justify-center p-8 z-0">
+                                    <div className="text-2xl sm:text-4xl font-black text-slate-800 text-center leading-relaxed">
+                                        {currentQ.overlayText.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                                    </div>
+                                </div>
+                            )}
+
+                            <canvas 
+                                ref={canvasRef} 
+                                width={600} 
+                                height={400} 
+                                className={`w-full max-w-2xl h-auto block mt-12 mb-4 ${currentQ?.hideTriangle ? 'opacity-0' : 'opacity-100'}`}
+                            ></canvas>
+
+                            <div className="absolute bottom-0 left-0 h-2 bg-indigo-500 transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / TIME_PER_Q) * 100}%`, backgroundColor: timeLeft < 5 ? '#ef4444' : '' }}></div>
+
+                            {gameState === 'feedback' && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm z-20">
+                                    {selectedAnswer === currentQ.correctText ? (
+                                        <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-3xl shadow-[0_0_30px_rgba(52,211,153,0.5)] flex flex-col items-center gap-2 scale-110 transition-transform">
+                                            <div className="flex items-center gap-3"><IconCheckCircle className="w-10 h-10" /> CHUẨN XÁC!</div>
+                                            <div className="text-lg opacity-90 font-medium">Đáp án: {currentQ.correctText}</div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-8 py-4 rounded-2xl font-black text-3xl shadow-[0_0_30px_rgba(244,63,94,0.5)] flex flex-col items-center gap-2">
+                                            <div className="flex items-center gap-3"><IconXCircle className="w-10 h-10" /> SAI RỒI!</div>
+                                            <div className="text-lg opacity-90 font-medium">Đáp án đúng: {currentQ.correctText}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">
+                            {currentQ?.options.map((option, idx) => {
+                                let btnClass = "p-4 rounded-xl border-b-4 font-bold text-base sm:text-xl transition-all duration-100 w-full flex items-center justify-center shadow-md break-words ";
+                                
+                                if (gameState !== 'feedback') {
+                                    btnClass += "bg-slate-700 border-slate-900 text-slate-100 hover:bg-slate-600 hover:border-slate-800 active:translate-y-1 active:border-b-0 cursor-pointer";
+                                } else {
+                                    if (option === currentQ.correctText) {
+                                        btnClass += "bg-emerald-500 border-emerald-700 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] z-10 scale-105";
+                                    } else if (option === selectedAnswer) {
+                                        btnClass += "bg-red-500 border-red-700 text-white";
+                                    } else {
+                                        btnClass += "bg-slate-800 border-slate-900 text-slate-500 opacity-50";
+                                    }
+                                }
+
+                                return (
+                                    <button key={idx} disabled={gameState === 'feedback'} onClick={() => handleAnswer(option)} className={btnClass}>
+                                        {option}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render React Component vào thẻ div có id="root"
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
